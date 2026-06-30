@@ -1,71 +1,35 @@
 # RM Turtle+ Roadmap
 
-## Milestone 0: Foundation
+## Current focus
 
-- Create repository
-- Establish project roles
-- Add README
-- Add changelog
-- Add requirements documentation
-- Add architecture documentation
-- Add testing plan
+RM Turtle+ is now focused on one simple standalone EdgeTX mixer script:
 
-## Milestone 1: Alpha Core
+```text
+/SCRIPTS/MIXES/RMTur.lua
+```
 
-Goal: prove the core automatic Turtle Mode sequence as a Lua mixer script on a RadioMaster TX16S MK3 running EdgeTX.
+No RF2 integration, no background scripts, no firmware changes.
 
-Planned work:
+## Completed
 
-- Mixer script skeleton
-- Input mapping
-- Output mapping
-- State machine
-- Timer engine
-- Fixed timing values
-- Bench-test procedure
+- Standalone mixer script loads on RadioMaster TX16S MK3.
+- Script reads existing arm request input.
+- Script reads SG switch.
+- Script outputs ARM and TURTLE.
+- Full output scale confirmed on the radio.
+- ELRS / CRSF channel-range issue identified: packet rate changed to 250 Hz for full channel availability.
+- Installation manual added.
 
-## Milestone 2: Configurable Alpha
+## Next
 
-Goal: allow timing values and switch behaviour to be configured without rewriting the core logic.
+- Final props-off Betaflight Modes test.
+- Add screenshots to documentation.
+- Create GitHub release package.
 
-Planned work:
+## Future ideas
 
-- Config table
-- Adjustable delays
-- Installation guide
-- Lumo18 example configuration
+Only after v1.0 is stable:
 
-## Milestone 3: Beta
-
-Goal: improve usability and diagnostics.
-
-Planned work:
-
-- Status output
-- Debug mode
-- Voice prompt support
-- Haptic feedback support
-- Improved safety checks
-
-## Milestone 4: Release Candidate
-
-Goal: prepare for public use.
-
-Planned work:
-
-- Full user manual
-- Full test checklist
-- Known limitations
-- Release packaging
-
-## Milestone 5: v1.0.0
-
-Goal: first stable public release.
-
-Release requires:
-
-- Bench tested
-- Radio channel monitor tested
-- Betaflight receiver/modes tested
-- Flight tested
-- Documentation complete
+- Optional different switch layouts.
+- Optional adjustable default timing presets.
+- Extra examples for other radios or models.
