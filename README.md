@@ -1,31 +1,79 @@
 # RM Turtle+
 
-An open-source automatic Turtle Mode controller for EdgeTX and Betaflight.
+A simple standalone EdgeTX mixer script for automating Betaflight Turtle Mode / Flip Over After Crash.
 
-## Project Status
+RM Turtle+ keeps your existing safe arming logic and adds an automatic timed sequence for entering and exiting Turtle Mode.
 
-**Version:** 0.1.0-alpha (Planning)
+## What it does
 
-## Project Owner
-Grant Lauga
+When armed and SG is moved from flight to Turtle Mode:
 
-## Lead Software Architect
-OpenAI ChatGPT
+```text
+ARM off -> wait -> TURTLE on -> wait -> ARM on
+```
 
-## Goals
+When SG is moved back to flight:
 
-- Automatic Turtle Mode entry
-- Automatic return to flight
-- Configurable timing
-- Safety-first state machine
-- Modular architecture
-- Comprehensive documentation
+```text
+ARM off -> wait -> TURTLE off -> wait -> ARM on
+```
 
-## Roadmap
+## Project direction
 
-1. Software Requirements Specification
-2. Architecture Design
-3. State Machine Implementation
-4. Bench Testing
-5. Flight Testing
-6. Public Release
+This project is intentionally simple.
+
+- One installable Lua mixer script.
+- No RF2 changes.
+- No RadioMaster system file changes.
+- No firmware changes.
+- No Betaflight widget dependency.
+- No background scripts.
+
+Install target:
+
+```text
+/SCRIPTS/MIXES/RMTur.lua
+```
+
+## Tested workflow
+
+```text
+SG- = Flight
+SG  = Turtle Mode
+SG+ = Ignored / reserved
+```
+
+Recommended script settings:
+
+```text
+ArmReq = L04
+SG     = SG
+DMode  = 4
+DArm   = 9
+```
+
+## Important ELRS / CRSF note
+
+For extra AUX channels to reach Betaflight, use a packet rate that supports the required channel count. On the tested setup, changing ELRS packet rate to **250 Hz** allowed the additional channels to appear correctly in Betaflight.
+
+Also confirm the radio channel range is set to:
+
+```text
+CH1 -> CH16
+```
+
+## Safety
+
+Always test with props removed before using this on a real quad.
+
+RM Turtle+ does not replace Betaflight arming checks, failsafe, or pilot safety discipline.
+
+## Documentation
+
+See:
+
+```text
+docs/INSTALLATION.md
+```
+
+for the full setup and test procedure.
