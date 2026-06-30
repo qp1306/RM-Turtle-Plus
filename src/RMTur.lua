@@ -1,21 +1,22 @@
 ------------------------------------------------------------
 -- RM Turtle+
 -- File    : RMTur.lua
--- Version : 0.0.6-dev
--- Purpose : Standalone EdgeTX mixer script for automatic Turtle Mode
+-- Version : 1.0.0
+-- Purpose : Standalone EdgeTX mixer script for Betaflight
+--           Turtle Mode / Flip Over After Crash automation.
 --
 -- SAFETY:
--- Test on spare channels first.
--- Do NOT connect these outputs to your real ARM/TURTLE channels
--- until the sequence has been checked in the channel monitor.
+-- Test with props removed before use.
+-- This script does not replace Betaflight safety checks.
+-- Keep your normal safe arming logic as the ArmReq input.
 --
 -- Required workflow:
 --   SG- = Flight
---   SG  = Turtle
+--   SG  = Turtle Mode
 --   SG+ = Ignored / reserved
 --
--- Setup:
---   ArmReq = L04
+-- Recommended setup:
+--   ArmReq = existing safe arm logical switch, e.g. L04
 --   SG     = SG
 --   DMode  = 4       (0.4 s from ARM low to mode change)
 --   DArm   = 9       (0.9 s total from start to ARM high)
@@ -33,8 +34,10 @@ local output = {
   "TURTLE"
 }
 
-local LOW  = -100
-local HIGH = 100
+-- Full mixer scale for this RadioMaster/EdgeTX build.
+-- Produces near full receiver range when used as a mixer source.
+local LOW  = -1000
+local HIGH = 1000
 
 local ST_DISARMED       = 0
 local ST_FLIGHT         = 1
@@ -55,19 +58,14 @@ local function ticks()
   return 0
 end
 
-local function active(v)
-  return v ~= nil and v > 0
+local function active(value)
+  return value ~= nil and value > 0
 end
 
--- EdgeTX 3-position switches normally report approximately:
---   SG- = negative
---   SG  = zero
---   SG+ = positive
---
--- Grant's workflow:
+-- EdgeTX 3-position switch handling for Grant's workflow:
 --   SG- = Flight
---   SG  = Turtle
---   SG+ = Ignore / hold last valid request
+--   SG  = Turtle Mode
+--   SG+ = Ignored / hold previous valid request
 local function readTurtleRequest(sgValue)
   if sgValue == nil then
     return lastValidRequest
@@ -116,7 +114,6 @@ local function run(armReqSrc, sgSrc, dMode, dArm)
     return LOW, LOW
   end
 
-  -- State transitions.
   if state == ST_DISARMED then
     if turtleReq then
       setState(ST_ENTER_DISARM)
@@ -167,6 +164,7 @@ local function run(armReqSrc, sgSrc, dMode, dArm)
     return LOW, LOW
   end
 
+  -- Output table.
   if state == ST_FLIGHT then
     return HIGH, LOW
   elseif state == ST_ENTER_DISARM then
