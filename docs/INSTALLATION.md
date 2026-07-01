@@ -11,30 +11,17 @@ RM Turtle+ changes ARM and Turtle Mode AUX outputs. Do not use it on a live airc
 3. Betaflight Modes tab.
 4. Props-off bench test.
 
-## 2. Important: RM Turtle+ does not create your arming logic
+## 2. Arming logic
 
-RM Turtle+ does **not** create logical switches for arming.
+RM Turtle+ does not create logical switches for arming.
 
-You must already have, or manually create, a safe arming request logical switch. In the tested setup this is:
-
-```text
-L05 = final safe arm request used by RM Turtle+
-```
-
-RM Turtle+ uses that switch as its `ArmReq` input.
-
-This is intentional. The script should not replace the pilot's preferred safety arming sequence.
-
-## 3. Production-tested two-stage arming setup
-
-This is the tested TX16S / EdgeTX logical-switch setup used with RM Turtle+.
+Create or keep your normal safe arming request. The tested setup uses:
 
 ```text
 L01  Edge     SH↓      [0.6s:<]       SF↓       0.1s
 L02  a<x      Thr      -99            ---
 L03  AND      L01      L02            ---
 L04  Sticky   L03      SF↑            ---
-L05  AND      L04      SG-            SG-
 ```
 
 Meaning:
@@ -44,65 +31,41 @@ L01 = SH momentary arm trigger
 L02 = throttle must be below -99
 L03 = SH trigger AND throttle low
 L04 = sticky armed request, reset by SF↑
-L05 = final arm request only when L04 is active and SG is in flight position SG-
 ```
 
-Recommended RM Turtle+ input:
+Use this as the script input:
 
 ```text
-ArmReq = L05
+ArmReq = L04
 ```
 
-Why L05 is recommended:
+Do not use `L05 = L04 AND SG-` as the script input. The script needs the sticky arm request to stay active while SG moves between Flight and Turtle.
+
+## 3. Final SG switch layout
+
+The confirmed working SG layout is:
 
 ```text
-L04 remembers the safe arm request.
-L05 only allows that request through when SG is in normal flight position.
+SG↑ = ignored / reserved
+SG- = Turtle Mode
+SG↓ = Flight
 ```
 
-This keeps the arming request tied to the normal flight switch position and avoids using the raw sticky arm state directly.
+## 4. Copy the Lua file
 
-## 4. What RM Turtle+ does
-
-RM Turtle+ is one standalone EdgeTX mixer script.
-
-It reads:
-
-```text
-ArmReq  = final safe arm request, recommended L05
-SG      = SG switch
-```
-
-It outputs:
-
-```text
-ARM
-TURTLE
-```
-
-The tested switch workflow is:
-
-```text
-SG- = Flight
-SG  = Turtle Mode
-SG+ = ignored / reserved
-```
-
-## 5. Copy the Lua file
-
-Copy the file:
+Copy:
 
 ```text
 src/RMTur.lua
 ```
 
-from the repository to the radio SD card as:
+to the radio SD card as:
 
 ```text
 /SCRIPTS/MIXES/RMTur.lua
 ```
 
-## 6. Enable the mixer script
+## 5. Enable the mixer script
 
 On the radio:
 
@@ -116,43 +79,60 @@ Select an empty Lua slot, for example `LUA1`, and choose:
 RMTur
 ```
 
-Set the script inputs:
+Set:
 
 ```text
-ArmReq = L05
+ArmReq = L04
 SG     = SG
 DMode  = 4
 DArm   = 9
 ```
 
-Timing meaning:
+Timing:
 
 ```text
 DMode = 4 = 0.4 seconds from ARM low to Turtle mode change
 DArm  = 9 = 0.9 seconds total from start to ARM high
 ```
 
-## 7. Add mixer output channels
+## 6. Add mixer output channels
 
-Choose two output channels that reach Betaflight. On the tested setup CH11 and CH12 were used.
-
-Example:
+Recommended output channels:
 
 ```text
-CH11 Source = 1-RMTur/ARM
-CH12 Source = 1-RMTur/TURTLE
+CH5 Source = 1-RMTur/ARM
+CH6 Source = 1-RMTur/TURTLE
 ```
 
 For both mixer lines:
 
 ```text
-Weight = 100%
-Switch = ---
-Offset = 0%
-Curve  = Diff / 0
+Weight    = 100%
+Switch    = ---
+Offset    = 0%
+Curve     = Diff / 0
+Multiplex = Replace
 ```
 
-Important: do not put `L05`, `SG`, or any other switch in the mixer line switch field. The Lua script already reads those inputs internally.
+Important: do not put `L04`, `SG`, or any other switch in the mixer line switch field. The Lua script already reads those inputs internally.
+
+## 7. Betaflight channel mapping
+
+With CH5 and CH6:
+
+```text
+CH5 = AUX1
+CH6 = AUX2
+```
+
+Recommended Betaflight Modes setup:
+
+```text
+ARM mode    = AUX1
+TURTLE mode = AUX2
+```
+
+Remove or disable old ARM/Turtle mode ranges that are no longer used.
 
 ## 8. ELRS / CRSF channel setup
 
@@ -162,41 +142,15 @@ If using ELRS / CRSF, make sure the radio channel range is:
 CH1 -> CH16
 ```
 
-On the tested setup, higher packet rates did not expose all required AUX channels in Betaflight. Changing the packet rate to:
+On the tested setup, changing the ELRS packet rate to:
 
 ```text
 250 Hz
 ```
 
-allowed the extra channels to appear correctly.
+allowed extra channels to appear correctly in Betaflight.
 
-If CH11 and CH12 move on the radio but AUX7/AUX8 do not move in Betaflight, check packet rate and channel range first.
-
-## 9. Betaflight channel mapping
-
-Betaflight AUX mapping normally follows:
-
-```text
-CH5  = AUX1
-CH6  = AUX2
-CH7  = AUX3
-CH8  = AUX4
-CH9  = AUX5
-CH10 = AUX6
-CH11 = AUX7
-CH12 = AUX8
-```
-
-If using CH11 and CH12:
-
-```text
-ARM mode    = AUX7
-TURTLE mode = AUX8
-```
-
-Remove or disable old ARM/Turtle mode ranges that are no longer used.
-
-## 10. Radio channel monitor test
+## 9. Radio channel monitor test
 
 With props removed:
 
@@ -209,7 +163,7 @@ TURTLE = low
 
 ### Armed, normal flight
 
-Use the two-stage arming sequence so `L05` becomes active.
+Use the arming sequence so `L04` becomes active.
 
 Expected:
 
@@ -223,7 +177,7 @@ TURTLE = low
 Move:
 
 ```text
-SG- -> SG
+SG↓ -> SG-
 ```
 
 Expected sequence:
@@ -239,7 +193,7 @@ ARM high, TURTLE high
 Move:
 
 ```text
-SG -> SG-
+SG- -> SG↓
 ```
 
 Expected sequence:
@@ -261,7 +215,7 @@ ARM low
 TURTLE low
 ```
 
-## 11. Betaflight Receiver tab test
+## 10. Betaflight Receiver tab test
 
 Open Betaflight Configurator:
 
@@ -273,7 +227,7 @@ Check that the chosen AUX channels move from low to high as expected.
 
 Do not continue until the Receiver tab matches the radio channel monitor.
 
-## 12. Betaflight Modes tab setup
+## 11. Betaflight Modes tab setup
 
 Open:
 
@@ -287,7 +241,7 @@ Set Flip Over After Crash / Turtle Mode to the RM Turtle+ TURTLE output AUX chan
 
 Verify the mode highlights match the expected sequence.
 
-## 13. First bench test
+## 12. First bench test
 
 Props removed.
 
@@ -301,7 +255,7 @@ Confirm:
 - Turtle Mode turns off after the delay.
 - The quad re-arms into normal flight mode.
 
-## 14. Known tested setup
+## 13. Known tested setup
 
 - Radio: RadioMaster TX16S MK3
 - Radio firmware: EdgeTX RadioMaster pre-2.12 build
