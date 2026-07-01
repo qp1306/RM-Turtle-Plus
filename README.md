@@ -38,9 +38,9 @@ Install target:
 ## Tested workflow
 
 ```text
-SG- = Flight
-SG  = Turtle Mode
-SG+ = Ignored / reserved
+SG↑ = Ignored / reserved
+SG- = Turtle Mode
+SG↓ = Flight
 ```
 
 Recommended script settings:
@@ -50,6 +50,13 @@ ArmReq = L04
 SG     = SG
 DMode  = 4
 DArm   = 9
+```
+
+Recommended output channels:
+
+```text
+CH5 = 1-RMTur/ARM    -> Betaflight AUX1
+CH6 = 1-RMTur/TURTLE -> Betaflight AUX2
 ```
 
 ## Important ELRS / CRSF note
