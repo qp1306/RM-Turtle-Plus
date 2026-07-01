@@ -11,7 +11,42 @@ RM Turtle+ changes ARM and Turtle Mode AUX outputs. Do not use it on a live airc
 3. Betaflight Modes tab.
 4. Props-off bench test.
 
-## 2. What RM Turtle+ does
+## 2. Important: RM Turtle+ does not create your arming logic
+
+RM Turtle+ does **not** create logical switches for arming.
+
+You must already have, or manually create, a safe arming request logical switch. In the tested setup this is:
+
+```text
+L04 = safe sticky arm request
+```
+
+RM Turtle+ uses that switch as its `ArmReq` input.
+
+This is intentional. The script should not replace the pilot's preferred safety arming sequence.
+
+## 3. Example arming logic used on the tested model
+
+The tested model uses a throttle-low plus SH arming sequence to reduce accidental arming.
+
+Example structure:
+
+```text
+L01 = SH arm trigger
+L02 = Throttle low check
+L03 = L01 AND L02
+L04 = Sticky arm request
+```
+
+Use your existing working arming setup if you already have one. The only requirement is that the final arming request switch, for example `L04`, is ON when the pilot wants the quad armed and OFF when the pilot wants it disarmed.
+
+Recommended tested setup:
+
+```text
+ArmReq = L04
+```
+
+## 4. What RM Turtle+ does
 
 RM Turtle+ is one standalone EdgeTX mixer script.
 
@@ -37,7 +72,7 @@ SG  = Turtle Mode
 SG+ = ignored / reserved
 ```
 
-## 3. Copy the Lua file
+## 5. Copy the Lua file
 
 Copy the file:
 
@@ -51,7 +86,7 @@ from the repository to the radio SD card as:
 /SCRIPTS/MIXES/RMTur.lua
 ```
 
-## 4. Enable the mixer script
+## 6. Enable the mixer script
 
 On the radio:
 
@@ -81,7 +116,7 @@ DMode = 4 = 0.4 seconds from ARM low to Turtle mode change
 DArm  = 9 = 0.9 seconds total from start to ARM high
 ```
 
-## 5. Add mixer output channels
+## 7. Add mixer output channels
 
 Choose two output channels that reach Betaflight. On the tested setup CH11 and CH12 were used.
 
@@ -103,7 +138,7 @@ Curve  = Diff / 0
 
 Important: do not put `L04`, `SG`, or any other switch in the mixer line switch field. The Lua script already reads those inputs internally.
 
-## 6. ELRS / CRSF channel setup
+## 8. ELRS / CRSF channel setup
 
 If using ELRS / CRSF, make sure the radio channel range is:
 
@@ -121,7 +156,7 @@ allowed the extra channels to appear correctly.
 
 If CH11 and CH12 move on the radio but AUX7/AUX8 do not move in Betaflight, check packet rate and channel range first.
 
-## 7. Betaflight channel mapping
+## 9. Betaflight channel mapping
 
 Betaflight AUX mapping normally follows:
 
@@ -145,7 +180,7 @@ TURTLE mode = AUX8
 
 Remove or disable old ARM/Turtle mode ranges that are no longer used.
 
-## 8. Radio channel monitor test
+## 10. Radio channel monitor test
 
 With props removed:
 
@@ -210,7 +245,7 @@ ARM low
 TURTLE low
 ```
 
-## 9. Betaflight Receiver tab test
+## 11. Betaflight Receiver tab test
 
 Open Betaflight Configurator:
 
@@ -222,7 +257,7 @@ Check that the chosen AUX channels move from low to high as expected.
 
 Do not continue until the Receiver tab matches the radio channel monitor.
 
-## 10. Betaflight Modes tab setup
+## 12. Betaflight Modes tab setup
 
 Open:
 
@@ -236,7 +271,7 @@ Set Flip Over After Crash / Turtle Mode to the RM Turtle+ TURTLE output AUX chan
 
 Verify the mode highlights match the expected sequence.
 
-## 11. First bench test
+## 13. First bench test
 
 Props removed.
 
@@ -250,7 +285,7 @@ Confirm:
 - Turtle Mode turns off after the delay.
 - The quad re-arms into normal flight mode.
 
-## 12. Known tested setup
+## 14. Known tested setup
 
 - Radio: RadioMaster TX16S MK3
 - Radio firmware: EdgeTX RadioMaster pre-2.12 build
