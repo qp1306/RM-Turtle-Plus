@@ -2,6 +2,20 @@
 
 All notable changes to RM Turtle+ will be documented in this file.
 
+## [1.0.3] - 2026-06-30
+
+### Changed
+
+- Confirmed final SG switch layout:
+  - `SG↑` = ignored / reserved
+  - `SG-` = Turtle Mode
+  - `SG↓` = Flight
+- Updated recommended script input back to `ArmReq = L04`.
+- Updated recommended output channels to CH5 and CH6:
+  - CH5 / AUX1 = ARM
+  - CH6 / AUX2 = TURTLE
+- Updated installation manual to remove the incorrect L05 recommendation.
+
 ## [1.0.0] - 2026-06-30
 
 ### Added
@@ -9,10 +23,6 @@ All notable changes to RM Turtle+ will be documented in this file.
 - Standalone EdgeTX mixer script: `src/RMTur.lua`.
 - Two script outputs: `ARM` and `TURTLE`.
 - Support for existing safe arming logic via `ArmReq` input.
-- Tested SG workflow:
-  - `SG-` = Flight
-  - `SG` = Turtle Mode
-  - `SG+` = ignored / reserved
 - Configurable timing inputs:
   - `DMode` default `4` = 0.4 seconds
   - `DArm` default `9` = 0.9 seconds total
