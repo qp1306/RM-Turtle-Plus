@@ -11,17 +11,18 @@ RM Turtle+ changes ARM and Turtle Mode AUX outputs. Do not use it on a live airc
 3. Betaflight Modes tab.
 4. Props-off bench test.
 
-## 2. Arming logic
+## 2. Logical switches
 
 RM Turtle+ does not create logical switches for arming.
 
-Create or keep your normal safe arming request. The tested setup uses:
+Create or keep your normal safe arming request. The current tested radio setup is:
 
 ```text
-L01  Edge     SH↓      [0.6s:<]       SF↓       0.1s
-L02  a<x      Thr      -99            ---
-L03  AND      L01      L02            ---
-L04  Sticky   L03      SF↑            ---
+L01  Edge     SHdown     [0.6s:<]      SFdown     0.1s
+L02  a<x      Thr        -99           ---
+L03  AND      L01        L02           ---
+L04  Sticky   L03        SFup          ---
+L05  AND      L04        SGup          ---
 ```
 
 Meaning:
@@ -30,25 +31,34 @@ Meaning:
 L01 = SH momentary arm trigger
 L02 = throttle must be below -99
 L03 = SH trigger AND throttle low
-L04 = sticky armed request, reset by SF↑
+L04 = sticky armed request, reset by SFup
+L05 = optional/legacy helper line from the current model
 ```
 
-Use this as the script input:
+Use this as the RM Turtle+ script input:
 
 ```text
 ArmReq = L04
 ```
 
-Do not use `L05 = L04 AND SG-` as the script input. The script needs the sticky arm request to stay active while SG moves between Flight and Turtle.
+Important: RM Turtle+ uses L04, not L05. L05 can stay on the model if you use it elsewhere, but it is not selected in the RM Turtle+ script.
 
 ## 3. Final SG switch layout
 
 The confirmed working SG layout is:
 
 ```text
-SG↑ = ignored / reserved
-SG- = Turtle Mode
-SG↓ = Flight
+SGup     = ignored / reserved
+SGmiddle = Turtle Mode
+SGdown   = Flight
+```
+
+On the EdgeTX screen this appears as:
+
+```text
+SGup     = SG↑
+SGmiddle = SG-
+SGdown   = SG↓
 ```
 
 ## 4. Copy the Lua file
@@ -114,7 +124,7 @@ Curve     = Diff / 0
 Multiplex = Replace
 ```
 
-Important: do not put `L04`, `SG`, or any other switch in the mixer line switch field. The Lua script already reads those inputs internally.
+Important: do not put L04, SG, or any other switch in the mixer line switch field. The Lua script already reads those inputs internally.
 
 ## 7. Betaflight channel mapping
 
@@ -163,7 +173,7 @@ TURTLE = low
 
 ### Armed, normal flight
 
-Use the arming sequence so `L04` becomes active.
+Use the arming sequence so L04 becomes active.
 
 Expected:
 
@@ -177,7 +187,7 @@ TURTLE = low
 Move:
 
 ```text
-SG↓ -> SG-
+SGdown -> SGmiddle
 ```
 
 Expected sequence:
@@ -193,7 +203,7 @@ ARM high, TURTLE high
 Move:
 
 ```text
-SG- -> SG↓
+SGmiddle -> SGdown
 ```
 
 Expected sequence:
@@ -206,7 +216,7 @@ ARM high, TURTLE low
 
 ### Safety override
 
-Turn off your normal arm request with SF↑.
+Turn off your normal arm request with SFup.
 
 Expected immediately:
 
