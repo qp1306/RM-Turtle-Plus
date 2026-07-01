@@ -18,33 +18,49 @@ RM Turtle+ does **not** create logical switches for arming.
 You must already have, or manually create, a safe arming request logical switch. In the tested setup this is:
 
 ```text
-L04 = safe sticky arm request
+L05 = final safe arm request used by RM Turtle+
 ```
 
 RM Turtle+ uses that switch as its `ArmReq` input.
 
 This is intentional. The script should not replace the pilot's preferred safety arming sequence.
 
-## 3. Example arming logic used on the tested model
+## 3. Production-tested two-stage arming setup
 
-The tested model uses a throttle-low plus SH arming sequence to reduce accidental arming.
-
-Example structure:
+This is the tested TX16S / EdgeTX logical-switch setup used with RM Turtle+.
 
 ```text
-L01 = SH arm trigger
-L02 = Throttle low check
-L03 = L01 AND L02
-L04 = Sticky arm request
+L01  Edge     SH↓      [0.6s:<]       SF↓       0.1s
+L02  a<x      Thr      -99            ---
+L03  AND      L01      L02            ---
+L04  Sticky   L03      SF↑            ---
+L05  AND      L04      SG-            SG-
 ```
 
-Use your existing working arming setup if you already have one. The only requirement is that the final arming request switch, for example `L04`, is ON when the pilot wants the quad armed and OFF when the pilot wants it disarmed.
-
-Recommended tested setup:
+Meaning:
 
 ```text
-ArmReq = L04
+L01 = SH momentary arm trigger
+L02 = throttle must be below -99
+L03 = SH trigger AND throttle low
+L04 = sticky armed request, reset by SF↑
+L05 = final arm request only when L04 is active and SG is in flight position SG-
 ```
+
+Recommended RM Turtle+ input:
+
+```text
+ArmReq = L05
+```
+
+Why L05 is recommended:
+
+```text
+L04 remembers the safe arm request.
+L05 only allows that request through when SG is in normal flight position.
+```
+
+This keeps the arming request tied to the normal flight switch position and avoids using the raw sticky arm state directly.
 
 ## 4. What RM Turtle+ does
 
@@ -53,7 +69,7 @@ RM Turtle+ is one standalone EdgeTX mixer script.
 It reads:
 
 ```text
-ArmReq  = your existing safe arm request, for example L04
+ArmReq  = final safe arm request, recommended L05
 SG      = SG switch
 ```
 
@@ -103,7 +119,7 @@ RMTur
 Set the script inputs:
 
 ```text
-ArmReq = L04
+ArmReq = L05
 SG     = SG
 DMode  = 4
 DArm   = 9
@@ -136,7 +152,7 @@ Offset = 0%
 Curve  = Diff / 0
 ```
 
-Important: do not put `L04`, `SG`, or any other switch in the mixer line switch field. The Lua script already reads those inputs internally.
+Important: do not put `L05`, `SG`, or any other switch in the mixer line switch field. The Lua script already reads those inputs internally.
 
 ## 8. ELRS / CRSF channel setup
 
@@ -193,7 +209,7 @@ TURTLE = low
 
 ### Armed, normal flight
 
-Use your normal arming sequence so `ArmReq` becomes active.
+Use the two-stage arming sequence so `L05` becomes active.
 
 Expected:
 
@@ -236,7 +252,7 @@ ARM high, TURTLE low
 
 ### Safety override
 
-Turn off your normal arm request.
+Turn off your normal arm request with SF↑.
 
 Expected immediately:
 
